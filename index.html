@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- En Güvenilir Firebase v8 SDK -->
+  <!-- Firebase v8 SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -57,8 +57,6 @@
       display: flex; 
       align-items: center; 
       gap: 6px; 
-      cursor: pointer;
-      user-select: none;
     }
     .header h1 span.logo-highlight { color: var(--indigo); }
     .header p { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; }
@@ -370,7 +368,7 @@
 
   <div class="header">
     <div>
-      <h1 onclick="handleResetDatabase()" title="Sıfırlamak için tıklayın">
+      <h1>
         <span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve <span class="logo-highlight">AI</span>
       </h1>
       <p>09:30 Getiri & Valör Korumalı</p>
@@ -566,13 +564,18 @@
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.database();
-    const revolveRef = db.ref('revolve_data');
+    
+    // Eski önbelleği ezip temiz başlangıç yapan yeni kanal
+    const DB_KEY = 'revolve_state_v2';
+    const revolveRef = db.ref(DB_KEY);
 
     let isAppUnlocked = false;
     let isBalanceVisible = false;
     let pendingCallback = null;
     let historyStack = [];
-    let state = JSON.parse(localStorage.getItem('revolve_state_v_safe')) || JSON.parse(JSON.stringify(INITIAL_DATA));
+    
+    // Temiz veri başlatma
+    let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(INITIAL_DATA));
 
     // Canlı Bulut Dinleyicisi
     revolveRef.on('value', (snapshot) => {
@@ -582,10 +585,11 @@
 
       if (val) {
         state = val;
-        try { localStorage.setItem('revolve_state_v_safe', JSON.stringify(state)); } catch(e){}
+        try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
         applyDaily0930Interest();
         render();
       } else {
+        // Yeni kanal boşsa tam 225.000 TL olarak kaydet
         saveState();
       }
     }, (err) => {
@@ -594,20 +598,9 @@
     });
 
     function saveState() {
-      try { localStorage.setItem('revolve_state_v_safe', JSON.stringify(state)); } catch(e){}
+      try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
       revolveRef.set(state);
       render();
-    }
-
-    // Başlığı Tıklayarak Bulut Dahil Sıfırlama
-    function handleResetDatabase() {
-      openPinModal(() => {
-        if (confirm("Revolve verileri ve bulut kaydı ilk 225.000,00 ₺ durumuna sıfırlansın mı?")) {
-          state = JSON.parse(JSON.stringify(INITIAL_DATA));
-          saveState();
-          alert("✅ Revolve başarıyla 225.000,00 ₺ olarak sıfırlandı ve senkronize edildi.");
-        }
-      }, "Sıfırlamak için PIN kodunuzu girin");
     }
 
     function toggleBalanceVisibility() {
@@ -716,6 +709,7 @@
       alert("↩ Son işlem geri alındı.");
     }
 
+    // 09:30 Kesin Kontrolü
     function applyDaily0930Interest() {
       const now = new Date();
       if (!state.lastProcessedDate) {
