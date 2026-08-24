@@ -8,9 +8,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- Firebase Realtime Database SDK (CDN) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <!-- En Güvenilir Firebase v8 SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <style>
     :root {
@@ -50,22 +50,25 @@
       align-items: center; 
       gap: 6px; 
     }
-    .header h1 { font-size: 1.2rem; font-weight: 800; color: #fff; }
-    .header h1 span { color: var(--indigo); }
+    .header h1 { font-size: 1.2rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
+    .header h1 span.logo-highlight { color: var(--indigo); }
     .header p { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; }
     .header-actions { display: flex; gap: 6px; align-items: center; }
 
-    /* Bulut Senkronizasyon Noktası */
-    .sync-dot {
-      width: 7px;
-      height: 7px;
+    /* Bulut Senkronizasyon Rozeti */
+    .sync-badge {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--emerald);
+      background: #f59e0b;
       display: inline-block;
-      box-shadow: 0 0 6px var(--emerald);
-      margin-right: 4px;
+      box-shadow: 0 0 6px #f59e0b;
+      transition: all 0.3s;
     }
-    .sync-dot.loading { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .sync-badge.connected {
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
 
     /* Kilit Butonu */
     .btn-lock {
@@ -358,7 +361,7 @@
 
   <div class="header">
     <div>
-      <h1><span class="sync-dot" id="syncDot" title="Bulut Senkronizasyonu"></span>Revolve <span>AI</span></h1>
+      <h1><span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve <span class="logo-highlight">AI</span></h1>
       <p>09:30 Getiri & Valör Korumalı</p>
     </div>
     <div class="header-actions">
@@ -395,7 +398,7 @@
 
     <div class="hero-footer">
       <span id="dailyProfitDisplay">Günlük Getiri: ~0,00 ₺</span>
-      <span id="lastSyncDisplay">Son Güncelleme: 09:30</span>
+      <span id="lastSyncDisplay">Son Nemalanma: 24.08.2026 09:30</span>
     </div>
   </div>
 
@@ -511,9 +514,11 @@
   </div>
 
   <script>
-    // Bankacılık Tipi Vektörel Göz SVG'leri
     const SVG_EYE_OPEN = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     const SVG_EYE_CLOSED = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+    // Bugünün başlangıç tarihi formatı (YYYY-MM-DD)
+    const todayStr = new Date().toISOString().split('T')[0];
 
     const INITIAL_DATA = {
       fundBalance: 225000,
@@ -521,7 +526,7 @@
       pendingEntries: [],
       monthlyRate: 3.04,
       userPin: "0000",
-      lastProcessed930Date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 9, 30, 0, 0).toISOString(),
+      lastProcessedDate: todayStr, // Gün bazlı kesin takip
       installments: [
         { id: 1, title: "Eylül Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Eylül 2026", paid: false },
         { id: 2, title: "Ekim Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Ekim 2026", paid: false },
@@ -536,7 +541,7 @@
       ]
     };
 
-    // Firebase Entegrasyonu
+    // Firebase Bağlantısı
     const firebaseConfig = {
       apiKey: "AIzaSyAa09Z-F66cStSxM4H3EeHZLGwxBRaIJhU",
       authDomain: "revolve-app-5a2c6.firebaseapp.com",
@@ -547,7 +552,9 @@
       appId: "1:1002363311989:web:3af1fd7004da1eeffbe53c"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
     const revolveRef = db.ref('revolve_data');
 
@@ -557,30 +564,28 @@
     let historyStack = [];
     let state = JSON.parse(localStorage.getItem('revolve_state_v_safe')) || JSON.parse(JSON.stringify(INITIAL_DATA));
 
-    // Buluttan Canlı Veri Dinleme
+    // Canlı Bulut Dinleyicisi
     revolveRef.on('value', (snapshot) => {
       const val = snapshot.val();
-      const dot = document.getElementById('syncDot');
+      const badge = document.getElementById('syncBadge');
+      if (badge) badge.classList.add('connected');
+
       if (val) {
         state = val;
         try { localStorage.setItem('revolve_state_v_safe', JSON.stringify(state)); } catch(e){}
+        applyDaily0930Interest();
         render();
-        if (dot) dot.classList.remove('loading');
       } else {
-        // Bulut boşsa ilk başlangıç verisini gönder
         saveState();
       }
+    }, (err) => {
+      const badge = document.getElementById('syncBadge');
+      if (badge) badge.classList.remove('connected');
     });
 
     function saveState() {
-      const dot = document.getElementById('syncDot');
-      if (dot) dot.classList.add('loading');
       try { localStorage.setItem('revolve_state_v_safe', JSON.stringify(state)); } catch(e){}
-      revolveRef.set(state).then(() => {
-        if (dot) dot.classList.remove('loading');
-      }).catch(() => {
-        if (dot) dot.classList.remove('loading');
-      });
+      revolveRef.set(state);
       render();
     }
 
@@ -690,42 +695,50 @@
       alert("↩ Son işlem geri alındı.");
     }
 
+    // Kesin ve Kusursuz 09:30 Günlük Faiz Motoru
     function applyDaily0930Interest() {
       const now = new Date();
-      const last = new Date(state.lastProcessed930Date);
-      
-      let nextThreshold = new Date(last);
-      nextThreshold.setDate(nextThreshold.getDate() + 1);
-      nextThreshold.setHours(9, 30, 0, 0);
-
-      let daysToAdd = 0;
-      while (now >= nextThreshold) {
-        daysToAdd++;
-
-        if (state.pendingEntries && state.pendingEntries.length > 0) {
-          const readyEntries = state.pendingEntries.filter(item => new Date(item.activeDate) <= nextThreshold);
-          const remainingEntries = state.pendingEntries.filter(item => new Date(item.activeDate) > nextThreshold);
-          
-          readyEntries.forEach(item => {
-            state.activeEarningBalance += item.amount;
-          });
-          state.pendingEntries = remainingEntries;
-        }
-
-        if (state.activeEarningBalance > 0) {
-          const dailyRate = Math.pow(1 + (state.monthlyRate / 100), 1 / 30) - 1;
-          const profit = state.activeEarningBalance * dailyRate;
-          state.activeEarningBalance += profit;
-          state.fundBalance += profit;
-        }
-
-        nextThreshold.setDate(nextThreshold.getDate() + 1);
+      if (!state.lastProcessedDate) {
+        state.lastProcessedDate = todayStr;
+        return;
       }
 
-      if (daysToAdd > 0) {
-        let updatedLast = new Date(last);
-        updatedLast.setDate(updatedLast.getDate() + daysToAdd);
-        state.lastProcessed930Date = updatedLast.toISOString();
+      const lastDate = new Date(state.lastProcessedDate + "T00:00:00");
+      const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+
+      // Gün farkı hesabı
+      const diffTime = currentDate - lastDate;
+      let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      // Eğer bugün saat henüz 09:30 olmadıysa bugünün faizini işletme
+      const isPast930Today = (now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() >= 30));
+      if (!isPast930Today && diffDays > 0) {
+        diffDays -= 1;
+      }
+
+      if (diffDays > 0) {
+        for (let i = 0; i < diffDays; i++) {
+          // Valörlü bekleyen paraları aktif et
+          if (state.pendingEntries && state.pendingEntries.length > 0) {
+            state.pendingEntries.forEach(item => {
+              state.activeEarningBalance += item.amount;
+            });
+            state.pendingEntries = [];
+          }
+
+          if (state.activeEarningBalance > 0) {
+            const dailyRate = Math.pow(1 + (state.monthlyRate / 100), 1 / 30) - 1;
+            const profit = state.activeEarningBalance * dailyRate;
+            state.activeEarningBalance += profit;
+            state.fundBalance += profit;
+          }
+        }
+
+        // Son nemalanma tarihini güncelle
+        let newProcessedDate = new Date(lastDate);
+        newProcessedDate.setDate(newProcessedDate.getDate() + diffDays);
+        state.lastProcessedDate = newProcessedDate.toISOString().split('T')[0];
+        
         saveState();
       }
     }
@@ -774,14 +787,10 @@
           state.activeEarningBalance += val;
           alert(`✅ ${formatTRY(val)} fona eklendi.\nSaat 16:30 öncesi olduğu için BU GECE faiz işlemeye başlayacak.`);
         } else {
-          let targetDate = new Date();
-          targetDate.setDate(targetDate.getDate() + 1);
-          targetDate.setHours(16, 30, 0, 0);
-
           state.pendingEntries = state.pendingEntries || [];
           state.pendingEntries.push({
             amount: val,
-            activeDate: targetDate.toISOString()
+            entryDate: todayStr
           });
 
           alert(`⏳ ${formatTRY(val)} fona eklendi.\nSaat 16:30 sonrası olduğu için YARIN GECE faiz işlemeye başlayacaktır (T+1 Valör).`);
@@ -865,8 +874,6 @@
     }
 
     function render() {
-      applyDaily0930Interest();
-
       document.getElementById('rateInput').value = state.monthlyRate;
       
       const balanceEl = document.getElementById('fundBalanceDisplay');
@@ -882,8 +889,8 @@
       const dailyEst = (state.activeEarningBalance * (state.monthlyRate / 100)) / 30;
       document.getElementById('dailyProfitDisplay').innerText = `Günlük Getiri: ~${formatTRY(dailyEst)}`;
 
-      const lastDate = new Date(state.lastProcessed930Date);
-      document.getElementById('lastSyncDisplay').innerText = `Son Güncelleme: ${lastDate.toLocaleDateString('tr-TR')} 09:30`;
+      const pDate = state.lastProcessedDate ? state.lastProcessedDate.split('-').reverse().join('.') : "24.08.2026";
+      document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: ${pDate} 09:30`;
 
       const container = document.getElementById('scheduleList');
       container.innerHTML = state.installments.map(item => {
