@@ -143,11 +143,11 @@
     .balance-container {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
-    .hero-amount { font-size: 1.65rem; font-weight: 800; color: #fff; line-height: 1.1; letter-spacing: 0.5px; }
+    .hero-amount { font-size: 1.55rem; font-weight: 800; color: #fff; line-height: 1.1; letter-spacing: 0.5px; }
     
-    .eye-btn {
+    .icon-action-btn {
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.15);
       color: #94a3b8;
@@ -159,10 +159,10 @@
       justify-content: center;
       transition: all 0.15s ease;
     }
-    .eye-btn:active { transform: scale(0.92); }
-    .eye-btn svg {
-      width: 18px;
-      height: 18px;
+    .icon-action-btn:active { transform: scale(0.92); }
+    .icon-action-btn svg {
+      width: 16px;
+      height: 16px;
       fill: none;
       stroke: currentColor;
       stroke-width: 2;
@@ -390,8 +390,15 @@
     <div class="hero-body">
       <div class="balance-container">
         <div class="hero-amount" id="fundBalanceDisplay">•••••• ₺</div>
-        <button class="eye-btn" id="eyeToggleBtn" onclick="toggleBalanceVisibility()" aria-label="Bakiyeyi Göster/Gizle">
+        
+        <!-- Göz Butonu -->
+        <button class="icon-action-btn" id="eyeToggleBtn" onclick="toggleBalanceVisibility()" aria-label="Bakiyeyi Göster/Gizle">
           <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+
+        <!-- Manuel Bakiye Düzenleme Kalemi -->
+        <button class="icon-action-btn" onclick="guardedAction(promptEditBalance)" title="Bakiyeyi Düzenle">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
         </button>
       </div>
       
@@ -549,7 +556,6 @@
       ]
     };
 
-    // Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAa09Z-F66cStSxM4H3EeHZLGwxBRaIJhU",
       authDomain: "revolve-app-5a2c6.firebaseapp.com",
@@ -564,20 +570,15 @@
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.database();
-    
-    // Eski önbelleği ezip temiz başlangıç yapan yeni kanal
-    const DB_KEY = 'revolve_state_v2';
+    const DB_KEY = 'revolve_live_sync';
     const revolveRef = db.ref(DB_KEY);
 
     let isAppUnlocked = false;
     let isBalanceVisible = false;
     let pendingCallback = null;
     let historyStack = [];
-    
-    // Temiz veri başlatma
     let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(INITIAL_DATA));
 
-    // Canlı Bulut Dinleyicisi
     revolveRef.on('value', (snapshot) => {
       const val = snapshot.val();
       const badge = document.getElementById('syncBadge');
@@ -589,7 +590,6 @@
         applyDaily0930Interest();
         render();
       } else {
-        // Yeni kanal boşsa tam 225.000 TL olarak kaydet
         saveState();
       }
     }, (err) => {
@@ -601,6 +601,23 @@
       try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
       revolveRef.set(state);
       render();
+    }
+
+    // Doğrudan Bakiye Düzenleme (Kalem Simgesi)
+    function promptEditBalance() {
+      const current = state.fundBalance;
+      const valStr = prompt("Mevcut Fon Bakiyesini Girin (₺):", current);
+      if (valStr !== null) {
+        const val = parseFloat(valStr.replace(',', '.'));
+        if (!isNaN(val) && val >= 0) {
+          snapshotHistory();
+          state.fundBalance = val;
+          state.activeEarningBalance = val;
+          state.lastProcessedDate = todayStr;
+          saveState();
+          alert(`✅ Bakiye başarıyla ${formatTRY(val)} olarak ayarlandı.`);
+        }
+      }
     }
 
     function toggleBalanceVisibility() {
@@ -709,7 +726,6 @@
       alert("↩ Son işlem geri alındı.");
     }
 
-    // 09:30 Kesin Kontrolü
     function applyDaily0930Interest() {
       const now = new Date();
       if (!state.lastProcessedDate) {
