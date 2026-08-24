@@ -48,18 +48,18 @@
     .header h1 { font-size: 1.2rem; font-weight: 800; color: #fff; }
     .header h1 span { color: var(--indigo); }
     .header p { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; }
-    .header-actions { display: flex; gap: 4px; align-items: center; }
+    .header-actions { display: flex; gap: 6px; align-items: center; }
 
     /* Kilit Butonu */
     .btn-lock {
-      padding: 5px 8px;
+      padding: 5px 9px;
       border-radius: 8px;
       font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 3px;
+      gap: 4px;
       white-space: nowrap;
       border: 1px solid transparent;
     }
@@ -74,23 +74,12 @@
       border-color: rgba(16, 185, 129, 0.45);
     }
 
-    /* Kontrol Butonları */
+    /* Geri Al Butonu */
     .btn-undo { 
       background: rgba(99, 102, 241, 0.2); 
       color: #a5b4fc; 
       border: 1px solid rgba(99, 102, 241, 0.4); 
-      padding: 5px 7px; 
-      border-radius: 8px; 
-      font-size: 0.72rem; 
-      font-weight: 600; 
-      cursor: pointer; 
-      white-space: nowrap;
-    }
-    .btn-reset { 
-      background: rgba(244, 63, 94, 0.2); 
-      color: var(--rose); 
-      border: 1px solid rgba(244, 63, 94, 0.4); 
-      padding: 5px 7px; 
+      padding: 5px 8px; 
       border-radius: 8px; 
       font-size: 0.72rem; 
       font-weight: 600; 
@@ -117,11 +106,37 @@
       margin: 8px 0 10px 0;
     }
 
+    .hero-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
     .hero-title { font-size: 0.7rem; text-transform: uppercase; color: #a5b4fc; letter-spacing: 0.5px; font-weight: 600; }
+    
+    .balance-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .hero-amount { font-size: 1.65rem; font-weight: 800; color: #fff; line-height: 1.1; }
+    
+    .eye-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      border-radius: 8px;
+      padding: 4px 7px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .eye-btn:active { transform: scale(0.92); }
+
     .hero-footer { font-size: 0.72rem; color: #cbd5e1; display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px; }
 
-    /* Mobille Uyumlu Küçültülmüş Fon Getiri Oranı Paneli */
+    /* Fon Getiri Oranı Paneli */
     .rate-compact-box {
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid rgba(99, 102, 241, 0.4);
@@ -325,16 +340,20 @@
         <span id="lockIcon">🔒</span> <span id="lockText">Kilitli</span>
       </button>
       <button class="btn-undo" onclick="guardedAction(undoLastAction)">↩ Geri Al</button>
-      <button class="btn-reset" onclick="guardedAction(resetToDefault)">🔄 Sıfırla</button>
     </div>
   </div>
 
-  <!-- Ana Fon Bakiyesi & Küçültülmüş Oran Paneli -->
+  <!-- Ana Fon Bakiyesi -->
   <div class="hero-card">
-    <div class="hero-title">Akbank ALE Fonu Toplam Değer</div>
+    <div class="hero-title-row">
+      <div class="hero-title">Akbank ALE Fonu Toplam Değer</div>
+    </div>
     
     <div class="hero-body">
-      <div class="hero-amount" id="fundBalanceDisplay">225.000,00 ₺</div>
+      <div class="balance-container">
+        <div class="hero-amount" id="fundBalanceDisplay">•••••• ₺</div>
+        <button class="eye-btn" id="eyeToggleBtn" onclick="toggleBalanceVisibility()">👁</button>
+      </div>
       
       <div class="rate-compact-box">
         <span class="rate-compact-label">Aylık:</span>
@@ -451,14 +470,14 @@
   <!-- 4 HANELİ PIN KİLİT MODALI -->
   <div class="pin-modal-overlay" id="pinModal">
     <div class="pin-card">
-      <h3>🔒 Kilit Açma</h3>
-      <p>İşlem yapmak için 4 haneli PIN kodunuzu girin</p>
+      <h3>🔒 Güvenlik Doğrulaması</h3>
+      <p id="pinModalPrompt">İşlem yapmak için PIN kodunuzu girin</p>
       
       <input type="password" maxlength="4" class="pin-input-field" id="pinCodeInput" inputmode="numeric" placeholder="••••" oninput="handlePinAutoCheck(this)">
 
       <div class="pin-actions">
         <button class="pin-btn pin-btn-cancel" onclick="closePinModal()">Vazgeç</button>
-        <button class="pin-btn pin-btn-submit" onclick="submitPin()">Aç</button>
+        <button class="pin-btn pin-btn-submit" onclick="submitPin()">Onayla</button>
       </div>
     </div>
   </div>
@@ -486,6 +505,8 @@
     };
 
     let isAppUnlocked = false;
+    let isBalanceVisible = false; // Bakiye varsayılan olarak gizli
+    let pendingCallback = null;
     let historyStack = [];
     let state;
 
@@ -495,24 +516,48 @@
       state = JSON.parse(JSON.stringify(INITIAL_DATA));
     }
 
+    // GÖZ İLE BAKİYE GÖSTER/GİZLE
+    function toggleBalanceVisibility() {
+      if (isBalanceVisible) {
+        isBalanceVisible = false;
+        render();
+      } else {
+        openPinModal(() => {
+          isBalanceVisible = true;
+          render();
+        }, "Bakiyeyi görüntülemek için PIN girin");
+      }
+    }
+
     function handleLockToggle() {
       if (isAppUnlocked) {
         isAppUnlocked = false;
         updateLockUI();
       } else {
-        openPinModal();
+        openPinModal(() => {
+          isAppUnlocked = true;
+          updateLockUI();
+        }, "Uygulama kilidini açmak için PIN girin");
       }
     }
 
     function guardedAction(callbackFn) {
       if (!isAppUnlocked) {
-        openPinModal();
+        openPinModal(() => {
+          isAppUnlocked = true;
+          updateLockUI();
+          callbackFn();
+        }, "Bu işlem için PIN kodunuzu girin");
         return;
       }
       callbackFn();
     }
 
-    function openPinModal() {
+    function openPinModal(onSuccessCallback, promptText) {
+      pendingCallback = onSuccessCallback;
+      const promptEl = document.getElementById('pinModalPrompt');
+      if (promptText && promptEl) promptEl.innerText = promptText;
+      
       const input = document.getElementById('pinCodeInput');
       input.value = '';
       document.getElementById('pinModal').classList.add('active');
@@ -520,6 +565,7 @@
     }
 
     function closePinModal() {
+      pendingCallback = null;
       document.getElementById('pinModal').classList.remove('active');
     }
 
@@ -534,9 +580,9 @@
       const validPin = state.userPin || "0000";
 
       if (entered === validPin) {
-        isAppUnlocked = true;
+        const cb = pendingCallback;
         closePinModal();
-        updateLockUI();
+        if (cb) cb();
       } else {
         alert("❌ Hatalı PIN kodu! (PIN: 0000)");
         document.getElementById('pinCodeInput').value = '';
@@ -621,15 +667,6 @@
     function saveState() {
       try { localStorage.setItem('revolve_state_v_safe', JSON.stringify(state)); } catch(e){}
       render();
-    }
-
-    function resetToDefault() {
-      if (confirm("Revolve verilerini ilk 225.000 ₺ başlangıç durumuna döndürmek istiyor musunuz?")) {
-        snapshotHistory();
-        state = JSON.parse(JSON.stringify(INITIAL_DATA));
-        state.lastProcessed930Date = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 9, 30, 0, 0).toISOString();
-        saveState();
-      }
     }
 
     function formatTRY(num) {
@@ -770,7 +807,17 @@
       applyDaily0930Interest();
 
       document.getElementById('rateInput').value = state.monthlyRate;
-      document.getElementById('fundBalanceDisplay').innerText = formatTRY(state.fundBalance);
+      
+      // Bakiye Gizlilik Kontrolü
+      const balanceEl = document.getElementById('fundBalanceDisplay');
+      const eyeBtn = document.getElementById('eyeToggleBtn');
+      if (isBalanceVisible) {
+        balanceEl.innerText = formatTRY(state.fundBalance);
+        eyeBtn.innerText = "🙈";
+      } else {
+        balanceEl.innerText = "•••••• ₺";
+        eyeBtn.innerText = "👁";
+      }
       
       const dailyEst = (state.activeEarningBalance * (state.monthlyRate / 100)) / 30;
       document.getElementById('dailyProfitDisplay').innerText = `Günlük Getiri: ~${formatTRY(dailyEst)}`;
