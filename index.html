@@ -7,6 +7,11 @@
   <meta name="theme-color" content="#090d16">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Firebase Realtime Database SDK (CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
   <style>
     :root {
       --bg: #090d16;
@@ -49,6 +54,18 @@
     .header h1 span { color: var(--indigo); }
     .header p { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; }
     .header-actions { display: flex; gap: 6px; align-items: center; }
+
+    /* Bulut Senkronizasyon Noktası */
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      display: inline-block;
+      box-shadow: 0 0 6px var(--emerald);
+      margin-right: 4px;
+    }
+    .sync-dot.loading { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
 
     /* Kilit Butonu */
     .btn-lock {
@@ -341,7 +358,7 @@
 
   <div class="header">
     <div>
-      <h1>Revolve <span>AI</span></h1>
+      <h1><span class="sync-dot" id="syncDot" title="Bulut Senkronizasyonu"></span>Revolve <span>AI</span></h1>
       <p>09:30 Getiri & Valör Korumalı</p>
     </div>
     <div class="header-actions">
@@ -494,10 +511,8 @@
   </div>
 
   <script>
-    // Bankacılık Tipi Açık Göz SVG
+    // Bankacılık Tipi Vektörel Göz SVG'leri
     const SVG_EYE_OPEN = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-    
-    // Bankacılık Tipi Üstü Çizili Kapalı Göz SVG
     const SVG_EYE_CLOSED = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
     const INITIAL_DATA = {
@@ -521,16 +536,52 @@
       ]
     };
 
+    // Firebase Entegrasyonu
+    const firebaseConfig = {
+      apiKey: "AIzaSyAa09Z-F66cStSxM4H3EeHZLGwxBRaIJhU",
+      authDomain: "revolve-app-5a2c6.firebaseapp.com",
+      databaseURL: "https://revolve-app-5a2c6-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "revolve-app-5a2c6",
+      storageBucket: "revolve-app-5a2c6.firebasestorage.app",
+      messagingSenderId: "1002363311989",
+      appId: "1:1002363311989:web:3af1fd7004da1eeffbe53c"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const revolveRef = db.ref('revolve_data');
+
     let isAppUnlocked = false;
     let isBalanceVisible = false;
     let pendingCallback = null;
     let historyStack = [];
-    let state;
+    let state = JSON.parse(localStorage.getItem('revolve_state_v_safe')) || JSON.parse(JSON.stringify(INITIAL_DATA));
 
-    try {
-      state = JSON.parse(localStorage.getItem('revolve_state_v_safe')) || JSON.parse(JSON.stringify(INITIAL_DATA));
-    } catch(e) {
-      state = JSON.parse(JSON.stringify(INITIAL_DATA));
+    // Buluttan Canlı Veri Dinleme
+    revolveRef.on('value', (snapshot) => {
+      const val = snapshot.val();
+      const dot = document.getElementById('syncDot');
+      if (val) {
+        state = val;
+        try { localStorage.setItem('revolve_state_v_safe', JSON.stringify(state)); } catch(e){}
+        render();
+        if (dot) dot.classList.remove('loading');
+      } else {
+        // Bulut boşsa ilk başlangıç verisini gönder
+        saveState();
+      }
+    });
+
+    function saveState() {
+      const dot = document.getElementById('syncDot');
+      if (dot) dot.classList.add('loading');
+      try { localStorage.setItem('revolve_state_v_safe', JSON.stringify(state)); } catch(e){}
+      revolveRef.set(state).then(() => {
+        if (dot) dot.classList.remove('loading');
+      }).catch(() => {
+        if (dot) dot.classList.remove('loading');
+      });
+      render();
     }
 
     function toggleBalanceVisibility() {
@@ -635,8 +686,7 @@
         return;
       }
       state = JSON.parse(historyStack.pop());
-      try { localStorage.setItem('revolve_state_v_safe', JSON.stringify(state)); } catch(e){}
-      render();
+      saveState();
       alert("↩ Son işlem geri alındı.");
     }
 
@@ -676,13 +726,8 @@
         let updatedLast = new Date(last);
         updatedLast.setDate(updatedLast.getDate() + daysToAdd);
         state.lastProcessed930Date = updatedLast.toISOString();
-        try { localStorage.setItem('revolve_state_v_safe', JSON.stringify(state)); } catch(e){}
+        saveState();
       }
-    }
-
-    function saveState() {
-      try { localStorage.setItem('revolve_state_v_safe', JSON.stringify(state)); } catch(e){}
-      render();
     }
 
     function formatTRY(num) {
@@ -824,7 +869,6 @@
 
       document.getElementById('rateInput').value = state.monthlyRate;
       
-      // Bakiye & Banka Tipi SVG İkon Yönetimi
       const balanceEl = document.getElementById('fundBalanceDisplay');
       const eyeBtn = document.getElementById('eyeToggleBtn');
       if (isBalanceVisible) {
