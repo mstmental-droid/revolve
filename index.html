@@ -58,7 +58,6 @@
       gap: 6px; 
     }
     .header h1 span.logo-highlight { color: var(--indigo); }
-    .header p { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; }
     .header-actions { display: flex; gap: 6px; align-items: center; }
 
     .sync-badge {
@@ -368,7 +367,6 @@
       <h1>
         <span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve <span class="logo-highlight">AI</span>
       </h1>
-      <p>08:00 Hafta İçi & Valör Korumalı</p>
     </div>
     <div class="header-actions">
       <button id="lockToggleBtn" class="btn-lock locked" onclick="handleLockToggle()">
@@ -416,7 +414,7 @@
         <span style="font-weight: 700; color: var(--emerald);" id="lastSyncDisplay">25.08.2026 08:00</span>
       </div>
       <div class="hero-info-row">
-        <span>Sonraki Nemalanma:</span>
+        <span>Sonraki Fon Getirisi:</span>
         <span style="font-weight: 700; color: #a5b4fc;" id="nextSyncDisplay">--</span>
       </div>
       <div class="hero-info-row" style="border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 4px; margin-top: 2px;">
@@ -495,9 +493,10 @@
     const SVG_EYE_OPEN = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     const SVG_EYE_CLOSED = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
+    // 25 Ağustos 08:00 net Akbank verisi işlenmiş taban
     const PRODUCTION_DATA = {
-      fundBalance: 225000,
-      activeEarningBalance: 225000,
+      fundBalance: 225217.46,
+      activeEarningBalance: 225217.46,
       monthlyRate: 3.04,
       userPin: "0000",
       initialDate: "2026-08-24",
@@ -516,7 +515,7 @@
       ]
     };
 
-    const DB_KEY = 'revolve_production_v1';
+    const DB_KEY = 'revolve_prod_v2';
     let isAppUnlocked = false;
     let isBalanceVisible = false;
     let pendingCallback = null;
@@ -554,7 +553,7 @@
         });
       }
     } catch(err) {
-      console.warn("Firebase bağlantısı:", err);
+      console.warn("Firebase:", err);
     }
 
     function saveState() {
@@ -563,10 +562,10 @@
       render();
     }
 
-    // HAFTA İÇİ 08:00 & HAFTA SONU (PAZARTESİ 3 GÜNLÜK) FAİZ MOTORU
+    // Hafta İçi 08:00 & Pazartesi 3 Günlük Nema Motoru
     function checkDaily0800Trigger() {
       const now = new Date();
-      const dayOfWeek = now.getDay(); // 0: Pazar, 1: Pazartesi, ..., 6: Cumartesi
+      const dayOfWeek = now.getDay();
       const isPast0800 = (now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() >= 0));
 
       if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -594,7 +593,7 @@
 
     setInterval(checkDaily0800Trigger, 10000);
 
-    // Dinamik Bir Sonraki Nemalanma Tarihi Hesaplama
+    // Sonraki Fon Getirisi Tarihi Hesabı
     function getNextSyncDateString() {
       const now = new Date();
       const dayOfWeek = now.getDay();
@@ -603,17 +602,13 @@
       let targetDate = new Date(now);
 
       if (dayOfWeek === 5) { // Cuma
-        if (isPast0800) {
-          targetDate.setDate(targetDate.getDate() + 3); // Pazartesi
-        }
+        if (isPast0800) targetDate.setDate(targetDate.getDate() + 3);
       } else if (dayOfWeek === 6) { // Cumartesi
-        targetDate.setDate(targetDate.getDate() + 2); // Pazartesi
+        targetDate.setDate(targetDate.getDate() + 2);
       } else if (dayOfWeek === 0) { // Pazar
-        targetDate.setDate(targetDate.getDate() + 1); // Pazartesi
+        targetDate.setDate(targetDate.getDate() + 1);
       } else { // Pazartesi - Perşembe
-        if (isPast0800) {
-          targetDate.setDate(targetDate.getDate() + 1);
-        }
+        if (isPast0800) targetDate.setDate(targetDate.getDate() + 1);
       }
 
       const dd = String(targetDate.getDate()).padStart(2, '0');
@@ -850,8 +845,6 @@
 
       const formattedLastDate = state.lastProcessedDate ? state.lastProcessedDate.split('-').reverse().join('.') : "25.08.2026";
       document.getElementById('lastSyncDisplay').innerText = `${formattedLastDate} 08:00`;
-
-      // Dinamik sonraki nemalanma zamanı
       document.getElementById('nextSyncDisplay').innerText = getNextSyncDateString();
 
       const container = document.getElementById('scheduleList');
