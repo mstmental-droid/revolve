@@ -355,7 +355,7 @@
       <h1>
         <span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve <span class="logo-highlight">AI</span>
       </h1>
-      <p>09:47 Test & Valör Korumalı</p>
+      <p>09:55 Test & Valör Korumalı</p>
     </div>
     <div class="header-actions">
       <button id="lockToggleBtn" class="btn-lock locked" onclick="handleLockToggle()">
@@ -468,13 +468,13 @@
     const SVG_EYE_OPEN = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     const SVG_EYE_CLOSED = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
-    // 09:47 Test Başlangıç Verisi (Henüz eklenmemiş 225.000 TL taban)
-    const INITIAL_TEST_DATA = {
-      fundBalance: 225000,
-      activeEarningBalance: 225000,
+    // 09:55 Test Başlangıç Verisi (225.224,72 TL taban)
+    const TEST_0955_DATA = {
+      fundBalance: 225224.72,
+      activeEarningBalance: 225224.72,
       monthlyRate: 3.04,
       userPin: "0000",
-      lastProcessedDate: "2026-08-24", // 24'ünde kalmış durumda
+      lastProcessedDate: "2026-08-24", // 24'ünde bekliyor
       installments: [
         { id: 1, title: "Eylül Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Eylül 2026", paid: false },
         { id: 2, title: "Ekim Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Ekim 2026", paid: false },
@@ -489,13 +489,13 @@
       ]
     };
 
-    const DB_KEY = 'revolve_test_0947';
+    const DB_KEY = 'revolve_live_0955';
     let isAppUnlocked = false;
-    let isBalanceVisible = true; // Test esnasında rahat görmek için bakiye açık
+    let isBalanceVisible = true;
     let pendingCallback = null;
     let historyStack = [];
 
-    let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(INITIAL_TEST_DATA));
+    let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(TEST_0955_DATA));
 
     let db = null;
     let revolveRef = null;
@@ -527,7 +527,7 @@
         });
       }
     } catch(err) {
-      console.warn("Firebase bağlantısı bekleniyor:", err);
+      console.warn("Firebase bağlantısı:", err);
     }
 
     function saveState() {
@@ -536,12 +536,12 @@
       render();
     }
 
-    // 09:47 CANLI TEST TETİKLEYİCİSİ
-    function checkLive0947Trigger() {
+    // 09:55 CANLI TETİKLEYİCİ
+    function checkLive0955Trigger() {
       const now = new Date();
-      const isPast0947 = (now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() >= 47));
+      const isPast0955 = (now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() >= 55));
 
-      if (isPast0947 && state.lastProcessedDate === "2026-08-24") {
+      if (isPast0955 && state.lastProcessedDate === "2026-08-24") {
         const dailyRate = Math.pow(1 + (state.monthlyRate / 100), 1 / 30) - 1;
         const profit = state.activeEarningBalance * dailyRate;
         state.fundBalance += profit;
@@ -551,10 +551,7 @@
       }
     }
 
-    // Her saniye kontrol et (09:47:00 olduğu saniye ekranda hemen artacak)
-    setInterval(() => {
-      checkLive0947Trigger();
-    }, 1000);
+    setInterval(checkLive0955Trigger, 1000);
 
     function promptEditBalance() {
       const current = state.fundBalance;
@@ -778,9 +775,9 @@
       document.getElementById('dailyProfitDisplay').innerText = `Günlük Getiri: ~${formatTRY(dailyEst)}`;
 
       if (state.lastProcessedDate === "2026-08-25") {
-        document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 25.08.2026 09:47`;
+        document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 25.08.2026 09:55`;
       } else {
-        document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 24.08.2026 09:30 (09:47 Bekleniyor)`;
+        document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 24.08.2026 09:30 (09:55 Bekleniyor)`;
       }
 
       const container = document.getElementById('scheduleList');
@@ -806,7 +803,7 @@
       }).join('');
     }
 
-    checkLive0947Trigger();
+    checkLive0955Trigger();
     render();
   </script>
 </body>
