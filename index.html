@@ -562,7 +562,7 @@
 
     const DB_KEY = 'revolve_prod_v2';
     let isAppUnlocked = false;
-    let isBalanceVisible = true;
+    let isBalanceVisible = false; // Her açılışta ve yenilemede varsayılan gizli başlar
     let pendingCallback = null;
     let historyStack = [];
 
@@ -659,16 +659,10 @@
       return `${dd}.${mm}.${yyyy} 08:00`;
     }
 
+    // Şifresiz Aç / Kapa
     function toggleBalanceVisibility() {
-      if (isBalanceVisible) {
-        isBalanceVisible = false;
-        render();
-      } else {
-        openPinModal(() => {
-          isBalanceVisible = true;
-          render();
-        }, "Bakiyeyi görüntülemek için PIN girin");
-      }
+      isBalanceVisible = !isBalanceVisible;
+      render();
     }
 
     function promptEditBalance() {
