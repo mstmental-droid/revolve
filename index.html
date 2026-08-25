@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Revolve</title>
+  <title>RevolveAI</title>
   <meta name="theme-color" content="#f8fafc">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -62,7 +62,7 @@
       color: #1e293b; 
       display: flex; 
       align-items: center; 
-      gap: 8px; 
+      gap: 0px; 
       letter-spacing: -0.5px;
       line-height: 1.1;
     }
@@ -72,8 +72,8 @@
       padding: 2px 6px;
       border-radius: 6px;
       font-size: 1rem;
+      margin-left: 2px;
     }
-    /* Tam olarak "R" harfinin sol hizasına denk gelen pay (10px nokta + 8px boşluk) */
     .header-subtext {
       font-size: 0.65rem;
       font-weight: 600;
@@ -92,6 +92,7 @@
       display: inline-block;
       box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
       transition: all 0.3s;
+      margin-right: 8px;
     }
 
     .btn-lock {
@@ -409,7 +410,7 @@
   <div class="header">
     <div class="header-brand">
       <h1>
-        <span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve <span class="logo-highlight">AI</span>
+        <span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve<span class="logo-highlight">AI</span>
       </h1>
       <span class="header-subtext">powered by mdtbdc</span>
     </div>
@@ -486,7 +487,7 @@
       <div class="card-btn-top"><span class="card-btn-icon">💰</span><span class="card-btn-badge">+ Ekle</span></div>
       <div><div class="card-btn-title">Ekstra Gelir<br>Para Ekle</div><div class="card-btn-sub">16:30 valör kurallı</div></div>
     </button>
-    <button class="action-card-btn btn-rose" style="grid-column: span 2; min-height: 70px;" onclick="guardedAction(toggleExtraExpenseBox)">
+    <button class="action-card-btn btn-rose" style="grid-column: span 2; min-height: 70px;" onclick="toggleExtraExpenseBox">
       <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span class="card-btn-icon">🚨</span>
