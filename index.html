@@ -62,17 +62,19 @@
       color: #1e293b; 
       display: flex; 
       align-items: center; 
-      gap: 0px; 
       letter-spacing: -0.5px;
       line-height: 1.1;
     }
+    /* Tamamen bitişik ve hizalı AI rozeti */
     .header h1 span.logo-highlight { 
       color: var(--indigo); 
       background: var(--indigo-light);
-      padding: 2px 6px;
-      border-radius: 6px;
-      font-size: 1rem;
-      margin-left: 2px;
+      padding: 1px 5px;
+      border-radius: 5px;
+      font-size: 0.95rem;
+      margin: 0;
+      display: inline-block;
+      vertical-align: middle;
     }
     .header-subtext {
       font-size: 0.65rem;
@@ -409,9 +411,7 @@
 
   <div class="header">
     <div class="header-brand">
-      <h1>
-        <span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve<span class="logo-highlight">AI</span>
-      </h1>
+      <h1><span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve<span class="logo-highlight">AI</span></h1>
       <span class="header-subtext">powered by mdtbdc</span>
     </div>
     <div class="header-actions">
@@ -562,7 +562,7 @@
 
     const DB_KEY = 'revolve_prod_v2';
     let isAppUnlocked = false;
-    let isBalanceVisible = false; // Her açılışta ve yenilemede varsayılan gizli başlar
+    let isBalanceVisible = false;
     let pendingCallback = null;
     let historyStack = [];
 
@@ -659,7 +659,6 @@
       return `${dd}.${mm}.${yyyy} 08:00`;
     }
 
-    // Şifresiz Aç / Kapa
     function toggleBalanceVisibility() {
       isBalanceVisible = !isBalanceVisible;
       render();
