@@ -164,7 +164,7 @@
     .hero-info-grid {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
       border-top: 1px solid rgba(255,255,255,0.08);
       padding-top: 8px;
       font-size: 0.72rem;
@@ -415,9 +415,12 @@
         <span>Son Fon Getirisi:</span>
         <span style="font-weight: 700; color: var(--emerald);" id="lastSyncDisplay">25.08.2026 08:00</span>
       </div>
-      <div class="hero-info-row" style="margin-top: 2px;">
+      <div class="hero-info-row">
+        <span>Sonraki Nemalanma:</span>
+        <span style="font-weight: 700; color: #a5b4fc;" id="nextSyncDisplay">--</span>
+      </div>
+      <div class="hero-info-row" style="border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 4px; margin-top: 2px;">
         <span id="dailyProfitDisplay">Günlük Getiri: ~0,00 ₺</span>
-        <span style="font-size: 0.65rem; color: var(--text-muted);">Sonraki: 08:00</span>
       </div>
     </div>
   </div>
@@ -492,14 +495,13 @@
     const SVG_EYE_OPEN = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     const SVG_EYE_CLOSED = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
-    // Kesin Başlangıç Verisi (225.000 TL taban, 25 Ağustos 08:00 nemalanmış hali)
     const PRODUCTION_DATA = {
       fundBalance: 225000,
       activeEarningBalance: 225000,
       monthlyRate: 3.04,
       userPin: "0000",
       initialDate: "2026-08-24",
-      lastProcessedDate: "2026-08-25", // 25 Ağustos 08:00 alındı
+      lastProcessedDate: "2026-08-25",
       installments: [
         { id: 1, title: "Eylül Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Eylül 2026", paid: false },
         { id: 2, title: "Ekim Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Ekim 2026", paid: false },
@@ -567,7 +569,6 @@
       const dayOfWeek = now.getDay(); // 0: Pazar, 1: Pazartesi, ..., 6: Cumartesi
       const isPast0800 = (now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() >= 0));
 
-      // Cumartesi (6) ve Pazar (0) günleri nemalanma yapılmaz
       if (dayOfWeek === 0 || dayOfWeek === 6) {
         return;
       }
@@ -576,8 +577,6 @@
 
       if (isPast0800 && state.lastProcessedDate < todayStr) {
         const dailyRate = Math.pow(1 + (state.monthlyRate / 100), 1 / 30) - 1;
-        
-        // Pazartesi ise Cuma + Ctesi + Pazar (3 gecelik) bileşik nema
         const daysToApply = (dayOfWeek === 1) ? 3 : 1;
         
         let earnedTotal = 0;
@@ -594,6 +593,35 @@
     }
 
     setInterval(checkDaily0800Trigger, 10000);
+
+    // Dinamik Bir Sonraki Nemalanma Tarihi Hesaplama
+    function getNextSyncDateString() {
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const isPast0800 = (now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() >= 0));
+
+      let targetDate = new Date(now);
+
+      if (dayOfWeek === 5) { // Cuma
+        if (isPast0800) {
+          targetDate.setDate(targetDate.getDate() + 3); // Pazartesi
+        }
+      } else if (dayOfWeek === 6) { // Cumartesi
+        targetDate.setDate(targetDate.getDate() + 2); // Pazartesi
+      } else if (dayOfWeek === 0) { // Pazar
+        targetDate.setDate(targetDate.getDate() + 1); // Pazartesi
+      } else { // Pazartesi - Perşembe
+        if (isPast0800) {
+          targetDate.setDate(targetDate.getDate() + 1);
+        }
+      }
+
+      const dd = String(targetDate.getDate()).padStart(2, '0');
+      const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+      const yyyy = targetDate.getFullYear();
+
+      return `${dd}.${mm}.${yyyy} 08:00`;
+    }
 
     function promptEditBalance() {
       const current = state.fundBalance;
@@ -822,6 +850,9 @@
 
       const formattedLastDate = state.lastProcessedDate ? state.lastProcessedDate.split('-').reverse().join('.') : "25.08.2026";
       document.getElementById('lastSyncDisplay').innerText = `${formattedLastDate} 08:00`;
+
+      // Dinamik sonraki nemalanma zamanı
+      document.getElementById('nextSyncDisplay').innerText = getNextSyncDateString();
 
       const container = document.getElementById('scheduleList');
       container.innerHTML = state.installments.map(item => {
