@@ -355,7 +355,7 @@
       <h1>
         <span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve <span class="logo-highlight">AI</span>
       </h1>
-      <p>09:30 Getiri & Valör Korumalı</p>
+      <p>09:47 Test & Valör Korumalı</p>
     </div>
     <div class="header-actions">
       <button id="lockToggleBtn" class="btn-lock locked" onclick="handleLockToggle()">
@@ -365,7 +365,6 @@
     </div>
   </div>
 
-  <!-- Ana Fon Bakiyesi -->
   <div class="hero-card">
     <div class="hero-title-row">
       <div class="hero-title">Akbank ALE Fonu Toplam Değer</div>
@@ -396,89 +395,47 @@
 
     <div class="hero-footer">
       <span id="dailyProfitDisplay">Günlük Getiri: ~0,00 ₺</span>
-      <span id="lastSyncDisplay">Son Nemalanma: 25.08.2026 09:30</span>
+      <span id="lastSyncDisplay">Son Nemalanma: 24.08.2026 09:30</span>
     </div>
   </div>
 
-  <!-- Hızlı İşlemler Izgarası -->
   <div class="section-label">⚡ Hızlı İşlemler</div>
   <div class="action-grid">
-    
-    <!-- 10'u -->
     <button class="action-card-btn btn-green" onclick="guardedAction(handleIncome10)">
-      <div class="card-btn-top">
-        <span class="card-btn-icon">📥</span>
-        <span class="card-btn-badge">+15k ₺</span>
-      </div>
-      <div>
-        <div class="card-btn-title">Ayın 10'u<br>2. Maaş</div>
-        <div class="card-btn-sub">Fona aktar</div>
-      </div>
+      <div class="card-btn-top"><span class="card-btn-icon">📥</span><span class="card-btn-badge">+15k ₺</span></div>
+      <div><div class="card-btn-title">Ayın 10'u<br>2. Maaş</div><div class="card-btn-sub">Fona aktar</div></div>
     </button>
-
-    <!-- 15'i -->
     <button class="action-card-btn btn-blue" onclick="guardedAction(handlePayday15)">
-      <div class="card-btn-top">
-        <span class="card-btn-icon">💳</span>
-        <span class="card-btn-badge">+45k ₺</span>
-      </div>
-      <div>
-        <div class="card-btn-title">Ayın 15'i<br>Maaş / Kredi</div>
-        <div class="card-btn-sub">Net bakiye fona</div>
-      </div>
+      <div class="card-btn-top"><span class="card-btn-icon">💳</span><span class="card-btn-badge">+45k ₺</span></div>
+      <div><div class="card-btn-title">Ayın 15'i<br>Maaş / Kredi</div><div class="card-btn-sub">Net bakiye fona</div></div>
     </button>
-
-    <!-- 19'u -->
     <button class="action-card-btn btn-orange" onclick="guardedAction(handlePayday19)">
-      <div class="card-btn-top">
-        <span class="card-btn-icon">📤</span>
-        <span class="card-btn-badge">Fondan Çek</span>
-      </div>
-      <div>
-        <div class="card-btn-title">Ayın 19'u<br>Taksit & Borç</div>
-        <div class="card-btn-sub">Borçları kapat</div>
-      </div>
+      <div class="card-btn-top"><span class="card-btn-icon">📤</span><span class="card-btn-badge">Fondan Çek</span></div>
+      <div><div class="card-btn-title">Ayın 19'u<br>Taksit & Borç</div><div class="card-btn-sub">Borçları kapat</div></div>
     </button>
-
-    <!-- Ekstra Gelir -->
     <button class="action-card-btn btn-purple" onclick="guardedAction(toggleExtraIncomeBox)">
-      <div class="card-btn-top">
-        <span class="card-btn-icon">💰</span>
-        <span class="card-btn-badge">+ Ekle</span>
-      </div>
-      <div>
-        <div class="card-btn-title">Ekstra Gelir<br>Para Ekle</div>
-        <div class="card-btn-sub">16:30 valör kurallı</div>
-      </div>
+      <div class="card-btn-top"><span class="card-btn-icon">💰</span><span class="card-btn-badge">+ Ekle</span></div>
+      <div><div class="card-btn-title">Ekstra Gelir<br>Para Ekle</div><div class="card-btn-sub">16:30 valör kurallı</div></div>
     </button>
-
-    <!-- Ekstra Gider -->
     <button class="action-card-btn btn-rose" style="grid-column: span 2; min-height: 65px;" onclick="guardedAction(toggleExtraExpenseBox)">
       <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span class="card-btn-icon">🚨</span>
-          <div>
-            <div class="card-btn-title" style="margin-top:0;">Ekstra Gider / Para Çıkar</div>
-            <div class="card-btn-sub">Acil harcamalar için fondan düş</div>
-          </div>
+          <div><div class="card-btn-title" style="margin-top:0;">Ekstra Gider / Para Çıkar</div><div class="card-btn-sub">Acil harcamalar için fondan düş</div></div>
         </div>
         <span class="card-btn-badge">- Çıkar</span>
       </div>
     </button>
-
   </div>
 
-  <!-- Ekstra Gelir Formu -->
   <div id="extraIncomeSection" class="card-box" style="display:none; margin-top: 10px;">
     <div class="section-label" style="margin: 0 0 4px 0;">Yeni Para Girişi (Gelir)</div>
-    <div style="font-size:0.65rem; color:var(--text-muted); margin-bottom:6px;">* 16:30 öncesi bu gece, sonrası yarın gece nemalanır.</div>
     <div class="input-row">
       <input type="number" id="extraIncomeAmount" placeholder="Tutar Girin (₺)">
       <button class="btn-submit" onclick="guardedAction(submitExtraIncome)">Fona Aktar</button>
     </div>
   </div>
 
-  <!-- Ekstra Gider Formu -->
   <div id="extraExpenseSection" class="card-box" style="display:none; margin-top: 10px; border-color: rgba(244, 63, 94, 0.4);">
     <div class="section-label" style="margin: 0 0 4px 0; color: var(--rose);">Fondan Para Çıkışı (Gider)</div>
     <div class="input-row">
@@ -487,7 +444,6 @@
     </div>
   </div>
 
-  <!-- Aylık Görevler Paneli -->
   <div class="accordion-header" onclick="toggleAccordion()">
     <span>📋 Revolve Görev & Ödeme Takvimi</span>
     <span class="accordion-arrow" id="accArrow">▼</span>
@@ -496,14 +452,11 @@
     <div id="scheduleList" style="margin-top: 6px;"></div>
   </div>
 
-  <!-- PIN MODALI -->
   <div class="pin-modal-overlay" id="pinModal">
     <div class="pin-card">
       <h3>🔒 Güvenlik Doğrulaması</h3>
       <p id="pinModalPrompt">İşlem yapmak için PIN kodunuzu girin</p>
-      
       <input type="password" maxlength="4" class="pin-input-field" id="pinCodeInput" inputmode="numeric" placeholder="••••" oninput="handlePinAutoCheck(this)">
-
       <div class="pin-actions">
         <button class="pin-btn pin-btn-cancel" onclick="closePinModal()">Vazgeç</button>
         <button class="pin-btn pin-btn-submit" onclick="submitPin()">Onayla</button>
@@ -515,13 +468,13 @@
     const SVG_EYE_OPEN = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     const SVG_EYE_CLOSED = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
-    // 25 Ağustos 09:30 1 günlük faizi eklenmiş kesin taban veri
-    const CLEAN_START_DATA = {
-      fundBalance: 225228,
-      activeEarningBalance: 225228,
+    // 09:47 Test Başlangıç Verisi (Henüz eklenmemiş 225.000 TL taban)
+    const INITIAL_TEST_DATA = {
+      fundBalance: 225000,
+      activeEarningBalance: 225000,
       monthlyRate: 3.04,
       userPin: "0000",
-      lastProcessedDate: "2026-08-25",
+      lastProcessedDate: "2026-08-24", // 24'ünde kalmış durumda
       installments: [
         { id: 1, title: "Eylül Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Eylül 2026", paid: false },
         { id: 2, title: "Ekim Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Ekim 2026", paid: false },
@@ -536,16 +489,14 @@
       ]
     };
 
-    // Temiz Veritabanı Kanalı
-    const DB_KEY = 'revolve_fixed_v4';
+    const DB_KEY = 'revolve_test_0947';
     let isAppUnlocked = false;
-    let isBalanceVisible = false;
+    let isBalanceVisible = true; // Test esnasında rahat görmek için bakiye açık
     let pendingCallback = null;
     let historyStack = [];
 
-    let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(CLEAN_START_DATA));
+    let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(INITIAL_TEST_DATA));
 
-    // Firebase
     let db = null;
     let revolveRef = null;
 
@@ -566,7 +517,7 @@
 
         revolveRef.on('value', (snapshot) => {
           const val = snapshot.val();
-          if (val && val.fundBalance < 10000000) { // Güvenlik filtresi: Trilyonluk eski veri varsa reddet
+          if (val) {
             state = val;
             try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
             render();
@@ -576,16 +527,34 @@
         });
       }
     } catch(err) {
-      console.warn("Bulut başlatma:", err);
+      console.warn("Firebase bağlantısı bekleniyor:", err);
     }
 
     function saveState() {
       try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
-      if (revolveRef) {
-        revolveRef.set(state).catch(e => console.warn(e));
-      }
+      if (revolveRef) revolveRef.set(state).catch(e => console.warn(e));
       render();
     }
+
+    // 09:47 CANLI TEST TETİKLEYİCİSİ
+    function checkLive0947Trigger() {
+      const now = new Date();
+      const isPast0947 = (now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() >= 47));
+
+      if (isPast0947 && state.lastProcessedDate === "2026-08-24") {
+        const dailyRate = Math.pow(1 + (state.monthlyRate / 100), 1 / 30) - 1;
+        const profit = state.activeEarningBalance * dailyRate;
+        state.fundBalance += profit;
+        state.activeEarningBalance += profit;
+        state.lastProcessedDate = "2026-08-25";
+        saveState();
+      }
+    }
+
+    // Her saniye kontrol et (09:47:00 olduğu saniye ekranda hemen artacak)
+    setInterval(() => {
+      checkLive0947Trigger();
+    }, 1000);
 
     function promptEditBalance() {
       const current = state.fundBalance;
@@ -641,7 +610,6 @@
       pendingCallback = onSuccessCallback;
       const promptEl = document.getElementById('pinModalPrompt');
       if (promptText && promptEl) promptEl.innerText = promptText;
-      
       const input = document.getElementById('pinCodeInput');
       input.value = '';
       document.getElementById('pinModal').classList.add('active');
@@ -654,16 +622,12 @@
     }
 
     function handlePinAutoCheck(el) {
-      if (el.value.length === 4) {
-        submitPin();
-      }
+      if (el.value.length === 4) submitPin();
     }
 
     function submitPin() {
       const entered = document.getElementById('pinCodeInput').value;
-      const validPin = state.userPin || "0000";
-
-      if (entered === validPin) {
+      if (entered === (state.userPin || "0000")) {
         const cb = pendingCallback;
         closePinModal();
         if (cb) cb();
@@ -678,7 +642,6 @@
       const btn = document.getElementById('lockToggleBtn');
       const icon = document.getElementById('lockIcon');
       const text = document.getElementById('lockText');
-
       if (isAppUnlocked) {
         document.body.classList.remove('is-locked');
         btn.className = "btn-lock unlocked";
@@ -698,13 +661,9 @@
     }
 
     function undoLastAction() {
-      if (historyStack.length === 0) {
-        alert("Geri alınacak önceki bir işlem bulunmuyor.");
-        return;
-      }
+      if (historyStack.length === 0) return;
       state = JSON.parse(historyStack.pop());
       saveState();
-      alert("↩ Son işlem geri alındı.");
     }
 
     function formatTRY(num) {
@@ -712,28 +671,22 @@
     }
 
     function toggleAccordion() {
-      const content = document.getElementById('accContent');
-      const arrow = document.getElementById('accArrow');
-      content.classList.toggle('show');
-      arrow.classList.toggle('open');
+      document.getElementById('accContent').classList.toggle('show');
+      document.getElementById('accArrow').classList.toggle('open');
     }
 
     function toggleExtraIncomeBox() {
       const el = document.getElementById('extraIncomeSection');
       document.getElementById('extraExpenseSection').style.display = 'none';
       el.style.display = el.style.display === 'none' ? 'block' : 'none';
-      if (el.style.display === 'block') {
-        document.getElementById('extraIncomeAmount').focus();
-      }
+      if (el.style.display === 'block') document.getElementById('extraIncomeAmount').focus();
     }
 
     function toggleExtraExpenseBox() {
       const el = document.getElementById('extraExpenseSection');
       document.getElementById('extraIncomeSection').style.display = 'none';
       el.style.display = el.style.display === 'none' ? 'block' : 'none';
-      if (el.style.display === 'block') {
-        document.getElementById('extraExpenseAmount').focus();
-      }
+      if (el.style.display === 'block') document.getElementById('extraExpenseAmount').focus();
     }
 
     function submitExtraIncome() {
@@ -745,24 +698,18 @@
         document.getElementById('extraIncomeAmount').value = '';
         toggleExtraIncomeBox();
         saveState();
-        alert(`✅ ${formatTRY(val)} fona eklendi.`);
       }
     }
 
     function submitExtraExpense() {
       const val = parseFloat(document.getElementById('extraExpenseAmount').value);
       if (!isNaN(val) && val > 0) {
-        if (val > state.fundBalance) {
-          alert("Uyarı: Çekmek istediğiniz tutar mevcut fon bakiyesinden yüksek!");
-          return;
-        }
         snapshotHistory();
         state.fundBalance -= val;
         state.activeEarningBalance = Math.max(0, state.activeEarningBalance - val);
         document.getElementById('extraExpenseAmount').value = '';
         toggleExtraExpenseBox();
         saveState();
-        alert(`🚨 ${formatTRY(val)} tutarında harcama düşüldü.`);
       }
     }
 
@@ -771,7 +718,6 @@
       state.fundBalance += 15000;
       state.activeEarningBalance += 15000;
       saveState();
-      alert("✅ 15.000 ₺ (2. Maaş) Revolve fonuna eklendi.");
     }
 
     function handlePayday15() {
@@ -779,15 +725,11 @@
       state.fundBalance += 45000;
       state.activeEarningBalance += 45000;
       saveState();
-      alert("✅ 75k Maaş alındı, 30k Krediler ödendi. Kalan +45.000 ₺ Revolve fonuna eklendi.");
     }
 
     function handlePayday19() {
       const nextPayment = state.installments.find(item => !item.paid);
-      if (!nextPayment) {
-        alert("Ödenecek dönem kalmadı!");
-        return;
-      }
+      if (!nextPayment) return;
       const total = nextPayment.uniAmount + nextPayment.fixedAmount;
       if (confirm(`${nextPayment.date} için fondan ${formatTRY(total)} çekilecek. Onaylıyor musunuz?`)) {
         snapshotHistory();
@@ -795,7 +737,6 @@
         state.activeEarningBalance = Math.max(0, state.activeEarningBalance - total);
         nextPayment.paid = true;
         saveState();
-        alert(`✅ ${nextPayment.date} borçları Revolve üzerinden ödendi.`);
       }
     }
 
@@ -805,7 +746,6 @@
         snapshotHistory();
         state.monthlyRate = val;
         saveState();
-        alert("✅ Revolve getiri oranı güncellendi.");
       }
     }
 
@@ -833,11 +773,15 @@
         eyeBtn.innerHTML = SVG_EYE_OPEN;
       }
       
-      // Net ve Güvenli Günlük Getiri Hesabı
       const dailyRate = Math.pow(1 + (state.monthlyRate / 100), 1 / 30) - 1;
       const dailyEst = state.activeEarningBalance * dailyRate;
       document.getElementById('dailyProfitDisplay').innerText = `Günlük Getiri: ~${formatTRY(dailyEst)}`;
-      document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 25.08.2026 09:30`;
+
+      if (state.lastProcessedDate === "2026-08-25") {
+        document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 25.08.2026 09:47`;
+      } else {
+        document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 24.08.2026 09:30 (09:47 Bekleniyor)`;
+      }
 
       const container = document.getElementById('scheduleList');
       container.innerHTML = state.installments.map(item => {
@@ -862,6 +806,7 @@
       }).join('');
     }
 
+    checkLive0947Trigger();
     render();
   </script>
 </body>
