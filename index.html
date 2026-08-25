@@ -515,10 +515,10 @@
     const SVG_EYE_OPEN = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     const SVG_EYE_CLOSED = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
-    const INITIAL_DATA = {
+    // 25 Ağustos 09:30 1 günlük faizi eklenmiş kesin taban veri
+    const CLEAN_START_DATA = {
       fundBalance: 225228,
       activeEarningBalance: 225228,
-      pendingEntries: [],
       monthlyRate: 3.04,
       userPin: "0000",
       lastProcessedDate: "2026-08-25",
@@ -536,13 +536,16 @@
       ]
     };
 
-    const DB_KEY = 'revolve_safe_v3';
+    // Temiz Veritabanı Kanalı
+    const DB_KEY = 'revolve_fixed_v4';
     let isAppUnlocked = false;
     let isBalanceVisible = false;
     let pendingCallback = null;
     let historyStack = [];
-    let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(INITIAL_DATA));
 
+    let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(CLEAN_START_DATA));
+
+    // Firebase
     let db = null;
     let revolveRef = null;
 
@@ -563,7 +566,7 @@
 
         revolveRef.on('value', (snapshot) => {
           const val = snapshot.val();
-          if (val) {
+          if (val && val.fundBalance < 10000000) { // Güvenlik filtresi: Trilyonluk eski veri varsa reddet
             state = val;
             try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
             render();
@@ -573,7 +576,7 @@
         });
       }
     } catch(err) {
-      console.warn("Bulut bağlantısı bekleniyor:", err);
+      console.warn("Bulut başlatma:", err);
     }
 
     function saveState() {
@@ -830,11 +833,11 @@
         eyeBtn.innerHTML = SVG_EYE_OPEN;
       }
       
-      const dailyEst = (state.activeEarningBalance * (state.monthlyRate / 100)) / 30;
+      // Net ve Güvenli Günlük Getiri Hesabı
+      const dailyRate = Math.pow(1 + (state.monthlyRate / 100), 1 / 30) - 1;
+      const dailyEst = state.activeEarningBalance * dailyRate;
       document.getElementById('dailyProfitDisplay').innerText = `Günlük Getiri: ~${formatTRY(dailyEst)}`;
-
-      const pDate = state.lastProcessedDate ? state.lastProcessedDate.split('-').reverse().join('.') : "25.08.2026";
-      document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: ${pDate} 09:30`;
+      document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 25.08.2026 09:30`;
 
       const container = document.getElementById('scheduleList');
       container.innerHTML = state.installments.map(item => {
