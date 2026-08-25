@@ -52,6 +52,10 @@
       align-items: center; 
       gap: 6px; 
     }
+    .header-brand {
+      display: flex;
+      flex-direction: column;
+    }
     .header h1 { 
       font-size: 1.35rem; 
       font-weight: 900; 
@@ -60,6 +64,7 @@
       align-items: center; 
       gap: 8px; 
       letter-spacing: -0.5px;
+      line-height: 1.1;
     }
     .header h1 span.logo-highlight { 
       color: var(--indigo); 
@@ -67,6 +72,14 @@
       padding: 2px 6px;
       border-radius: 6px;
       font-size: 1rem;
+    }
+    .header-subtext {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.4px;
+      margin-top: 3px;
+      margin-left: 1px;
     }
     .header-actions { display: flex; gap: 8px; align-items: center; }
 
@@ -119,7 +132,6 @@
     }
     .btn-undo:active { transform: scale(0.95); }
 
-    /* Canlı Gradyanlı Ana Bakiye Kartı */
     .hero-card {
       background: linear-gradient(135deg, #4338ca 0%, #3b82f6 100%);
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -230,7 +242,6 @@
 
     .section-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin: 16px 0 10px 0; }
     
-    /* Canlı Renkli Hızlı Butonlar */
     .action-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -271,7 +282,6 @@
     .btn-purple { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); box-shadow: 0 6px 18px -4px rgba(124, 58, 237, 0.45); }
     .btn-rose { background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%); box-shadow: 0 6px 18px -4px rgba(225, 29, 72, 0.45); }
 
-    /* Açık Renkli Form Kutuları */
     .card-box { 
       background: #ffffff; 
       border: 1px solid var(--card-border); 
@@ -294,7 +304,6 @@
     .input-row input:focus { border-color: var(--indigo); background: #ffffff; }
     .btn-submit { background: var(--indigo); color: #fff; border: none; border-radius: 10px; padding: 0 16px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
 
-    /* Akordeon Ödeme Takvimi */
     .accordion-header {
       display: flex;
       justify-content: space-between;
@@ -343,7 +352,6 @@
     .badge-unpaid { background: var(--rose-light); color: var(--rose); }
     .badge-paid { background: var(--emerald-light); color: var(--emerald); }
 
-    /* Açık Temalı PIN Modal */
     .pin-modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -398,10 +406,11 @@
 <body class="is-locked">
 
   <div class="header">
-    <div>
+    <div class="header-brand">
       <h1>
         <span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve <span class="logo-highlight">AI</span>
       </h1>
+      <span class="header-subtext">powered by mdtbdc</span>
     </div>
     <div class="header-actions">
       <button id="lockToggleBtn" class="btn-lock locked" onclick="handleLockToggle()">
@@ -441,7 +450,7 @@
 
     <div class="hero-info-grid">
       <div class="hero-info-row">
-        <span>İlk Fon Getiri Tarihi:</span>
+        <span>İlk Fon Ekleme Tarihi:</span>
         <span style="font-weight: 800; color: #ffffff;">24.08.2026</span>
       </div>
       <div class="hero-info-row">
