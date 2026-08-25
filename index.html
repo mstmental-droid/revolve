@@ -355,7 +355,7 @@
       <h1>
         <span class="sync-badge" id="syncBadge" title="Bağlantı Durumu"></span>Revolve <span class="logo-highlight">AI</span>
       </h1>
-      <p>09:55 Test & Valör Korumalı</p>
+      <p>09:59 Test & Valör Korumalı</p>
     </div>
     <div class="header-actions">
       <button id="lockToggleBtn" class="btn-lock locked" onclick="handleLockToggle()">
@@ -395,7 +395,7 @@
 
     <div class="hero-footer">
       <span id="dailyProfitDisplay">Günlük Getiri: ~0,00 ₺</span>
-      <span id="lastSyncDisplay">Son Nemalanma: 24.08.2026 09:30</span>
+      <span id="lastSyncDisplay">Son Nemalanma: 24.08.2026 (09:59 Bekleniyor)</span>
     </div>
   </div>
 
@@ -468,13 +468,13 @@
     const SVG_EYE_OPEN = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     const SVG_EYE_CLOSED = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
-    // 09:55 Test Başlangıç Verisi (225.224,72 TL taban)
-    const TEST_0955_DATA = {
-      fundBalance: 225224.72,
-      activeEarningBalance: 225224.72,
+    // Mevcut 225.449,66 TL bakiye
+    const TEST_CURRENT_DATA = {
+      fundBalance: 225449.66,
+      activeEarningBalance: 225449.66,
       monthlyRate: 3.04,
       userPin: "0000",
-      lastProcessedDate: "2026-08-24", // 24'ünde bekliyor
+      lastProcessedDate: "2026-08-24", // 09:59 için beklemede
       installments: [
         { id: 1, title: "Eylül Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Eylül 2026", paid: false },
         { id: 2, title: "Ekim Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Ekim 2026", paid: false },
@@ -489,13 +489,13 @@
       ]
     };
 
-    const DB_KEY = 'revolve_live_0955';
+    const DB_KEY = 'revolve_test_0959';
     let isAppUnlocked = false;
     let isBalanceVisible = true;
     let pendingCallback = null;
     let historyStack = [];
 
-    let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(TEST_0955_DATA));
+    let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(TEST_CURRENT_DATA));
 
     let db = null;
     let revolveRef = null;
@@ -536,12 +536,12 @@
       render();
     }
 
-    // 09:55 CANLI TETİKLEYİCİ
-    function checkLive0955Trigger() {
+    // 09:59 CANLI TETİKLEYİCİ
+    function checkLive0959Trigger() {
       const now = new Date();
-      const isPast0955 = (now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() >= 55));
+      const isPast0959 = (now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() >= 59));
 
-      if (isPast0955 && state.lastProcessedDate === "2026-08-24") {
+      if (isPast0959 && state.lastProcessedDate === "2026-08-24") {
         const dailyRate = Math.pow(1 + (state.monthlyRate / 100), 1 / 30) - 1;
         const profit = state.activeEarningBalance * dailyRate;
         state.fundBalance += profit;
@@ -551,7 +551,7 @@
       }
     }
 
-    setInterval(checkLive0955Trigger, 1000);
+    setInterval(checkLive0959Trigger, 1000);
 
     function promptEditBalance() {
       const current = state.fundBalance;
@@ -775,9 +775,9 @@
       document.getElementById('dailyProfitDisplay').innerText = `Günlük Getiri: ~${formatTRY(dailyEst)}`;
 
       if (state.lastProcessedDate === "2026-08-25") {
-        document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 25.08.2026 09:55`;
+        document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 25.08.2026 09:59`;
       } else {
-        document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 24.08.2026 09:30 (09:55 Bekleniyor)`;
+        document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: 24.08.2026 (09:59 Bekleniyor)`;
       }
 
       const container = document.getElementById('scheduleList');
@@ -803,7 +803,7 @@
       }).join('');
     }
 
-    checkLive0955Trigger();
+    checkLive0959Trigger();
     render();
   </script>
 </body>
