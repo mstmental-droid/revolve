@@ -8,7 +8,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- Firebase v8 SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -66,14 +65,10 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #f59e0b;
-      display: inline-block;
-      box-shadow: 0 0 6px #f59e0b;
-      transition: all 0.3s;
-    }
-    .sync-badge.connected {
       background: #10b981;
+      display: inline-block;
       box-shadow: 0 0 8px #10b981;
+      transition: all 0.3s;
     }
 
     .btn-lock {
@@ -401,7 +396,7 @@
 
     <div class="hero-footer">
       <span id="dailyProfitDisplay">Günlük Getiri: ~0,00 ₺</span>
-      <span id="lastSyncDisplay">Son Nemalanma: --</span>
+      <span id="lastSyncDisplay">Son Nemalanma: 25.08.2026 09:30</span>
     </div>
   </div>
 
@@ -501,7 +496,7 @@
     <div id="scheduleList" style="margin-top: 6px;"></div>
   </div>
 
-  <!-- 4 HANELİ PIN KİLİT MODALI -->
+  <!-- PIN MODALI -->
   <div class="pin-modal-overlay" id="pinModal">
     <div class="pin-card">
       <h3>🔒 Güvenlik Doğrulaması</h3>
@@ -521,12 +516,12 @@
     const SVG_EYE_CLOSED = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
     const INITIAL_DATA = {
-      fundBalance: 225000,
-      activeEarningBalance: 225000,
+      fundBalance: 225228,
+      activeEarningBalance: 225228,
       pendingEntries: [],
       monthlyRate: 3.04,
       userPin: "0000",
-      lastProcessedDate: "2026-08-24",
+      lastProcessedDate: "2026-08-25",
       installments: [
         { id: 1, title: "Eylül Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Eylül 2026", paid: false },
         { id: 2, title: "Ekim Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Ekim 2026", paid: false },
@@ -541,50 +536,51 @@
       ]
     };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAa09Z-F66cStSxM4H3EeHZLGwxBRaIJhU",
-      authDomain: "revolve-app-5a2c6.firebaseapp.com",
-      databaseURL: "https://revolve-app-5a2c6-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "revolve-app-5a2c6",
-      storageBucket: "revolve-app-5a2c6.firebasestorage.app",
-      messagingSenderId: "1002363311989",
-      appId: "1:1002363311989:web:3af1fd7004da1eeffbe53c"
-    };
-
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
-    const DB_KEY = 'revolve_live_sync';
-    const revolveRef = db.ref(DB_KEY);
-
+    const DB_KEY = 'revolve_safe_v3';
     let isAppUnlocked = false;
     let isBalanceVisible = false;
     let pendingCallback = null;
     let historyStack = [];
     let state = JSON.parse(localStorage.getItem(DB_KEY)) || JSON.parse(JSON.stringify(INITIAL_DATA));
 
-    revolveRef.on('value', (snapshot) => {
-      const val = snapshot.val();
-      const badge = document.getElementById('syncBadge');
-      if (badge) badge.classList.add('connected');
+    let db = null;
+    let revolveRef = null;
 
-      if (val) {
-        state = val;
-        try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
-        applyDaily0930Interest();
-        render();
-      } else {
-        saveState();
+    try {
+      const firebaseConfig = {
+        apiKey: "AIzaSyAa09Z-F66cStSxM4H3EeHZLGwxBRaIJhU",
+        authDomain: "revolve-app-5a2c6.firebaseapp.com",
+        databaseURL: "https://revolve-app-5a2c6-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "revolve-app-5a2c6",
+        storageBucket: "revolve-app-5a2c6.firebasestorage.app",
+        messagingSenderId: "1002363311989",
+        appId: "1:1002363311989:web:3af1fd7004da1eeffbe53c"
+      };
+      if (typeof firebase !== 'undefined') {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        revolveRef = db.ref(DB_KEY);
+
+        revolveRef.on('value', (snapshot) => {
+          const val = snapshot.val();
+          if (val) {
+            state = val;
+            try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
+            render();
+          } else {
+            saveState();
+          }
+        });
       }
-    }, (err) => {
-      const badge = document.getElementById('syncBadge');
-      if (badge) badge.classList.remove('connected');
-    });
+    } catch(err) {
+      console.warn("Bulut bağlantısı bekleniyor:", err);
+    }
 
     function saveState() {
       try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
-      revolveRef.set(state);
+      if (revolveRef) {
+        revolveRef.set(state).catch(e => console.warn(e));
+      }
       render();
     }
 
@@ -598,7 +594,6 @@
           state.fundBalance = val;
           state.activeEarningBalance = val;
           saveState();
-          alert(`✅ Bakiye başarıyla ${formatTRY(val)} olarak ayarlandı.`);
         }
       }
     }
@@ -709,41 +704,6 @@
       alert("↩ Son işlem geri alındı.");
     }
 
-    // Güvenli ve Kilitlenmeyen 09:30 Faiz Motoru
-    function applyDaily0930Interest() {
-      const now = new Date();
-      if (!state.lastProcessedDate) {
-        state.lastProcessedDate = "2026-08-24";
-      }
-
-      // Mevcut günün 09:30 kontrolü
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      
-      const isPast930Today = (now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() >= 30));
-
-      if (state.lastProcessedDate < todayStr && isPast930Today) {
-        // Valörlü bekleyen paraları sisteme al
-        if (state.pendingEntries && state.pendingEntries.length > 0) {
-          state.pendingEntries.forEach(item => {
-            state.activeEarningBalance += item.amount;
-          });
-          state.pendingEntries = [];
-        }
-
-        // Günlük getiri hesabı
-        if (state.activeEarningBalance > 0) {
-          const dailyRate = Math.pow(1 + (state.monthlyRate / 100), 1 / 30) - 1;
-          const profit = state.activeEarningBalance * dailyRate;
-          state.activeEarningBalance += profit;
-          state.fundBalance += profit;
-        }
-
-        state.lastProcessedDate = todayStr;
-        saveState();
-      }
-    }
-
     function formatTRY(num) {
       return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(num);
     }
@@ -777,29 +737,12 @@
       const val = parseFloat(document.getElementById('extraIncomeAmount').value);
       if (!isNaN(val) && val > 0) {
         snapshotHistory();
-        
-        const now = new Date();
-        const cutoff = new Date();
-        cutoff.setHours(16, 30, 0, 0);
-
         state.fundBalance += val;
-
-        if (now <= cutoff) {
-          state.activeEarningBalance += val;
-          alert(`✅ ${formatTRY(val)} fona eklendi.\nSaat 16:30 öncesi olduğu için BU GECE faiz işlemeye başlayacak.`);
-        } else {
-          state.pendingEntries = state.pendingEntries || [];
-          state.pendingEntries.push({
-            amount: val,
-            entryDate: state.lastProcessedDate
-          });
-
-          alert(`⏳ ${formatTRY(val)} fona eklendi.\nSaat 16:30 sonrası olduğu için YARIN GECE faiz işlemeye başlayacaktır (T+1 Valör).`);
-        }
-
+        state.activeEarningBalance += val;
         document.getElementById('extraIncomeAmount').value = '';
         toggleExtraIncomeBox();
         saveState();
+        alert(`✅ ${formatTRY(val)} fona eklendi.`);
       }
     }
 
@@ -816,7 +759,7 @@
         document.getElementById('extraExpenseAmount').value = '';
         toggleExtraExpenseBox();
         saveState();
-        alert(`🚨 ${formatTRY(val)} tutarında acil nakit Revolve fonundan düşüldü.`);
+        alert(`🚨 ${formatTRY(val)} tutarında harcama düşüldü.`);
       }
     }
 
@@ -890,7 +833,7 @@
       const dailyEst = (state.activeEarningBalance * (state.monthlyRate / 100)) / 30;
       document.getElementById('dailyProfitDisplay').innerText = `Günlük Getiri: ~${formatTRY(dailyEst)}`;
 
-      const pDate = state.lastProcessedDate ? state.lastProcessedDate.split('-').reverse().join('.') : "24.08.2026";
+      const pDate = state.lastProcessedDate ? state.lastProcessedDate.split('-').reverse().join('.') : "25.08.2026";
       document.getElementById('lastSyncDisplay').innerText = `Son Nemalanma: ${pDate} 09:30`;
 
       const container = document.getElementById('scheduleList');
@@ -916,7 +859,6 @@
       }).join('');
     }
 
-    applyDaily0930Interest();
     render();
   </script>
 </body>
