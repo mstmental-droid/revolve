@@ -433,7 +433,7 @@
         <span class="rate-compact-label">Aylık:</span>
         <div class="rate-compact-input-group">
           <span>%</span>
-          <input type="number" step="0.01" id="rateInput" value="3.04">
+          <input type="number" step="0.01" id="rateInput" value="3.14">
           <button class="rate-compact-btn" onclick="guardedAction(updateRate)">Kaydet</button>
         </div>
       </div>
@@ -446,7 +446,7 @@
       </div>
       <div class="hero-info-row">
         <span>Son Fon Getirisi:</span>
-        <span style="font-weight: 800; color: #a7f3d0;" id="lastSyncDisplay">25.08.2026 08:00</span>
+        <span style="font-weight: 800; color: #a7f3d0;" id="lastSyncDisplay">26.08.2026 08:00</span>
       </div>
       <div class="hero-info-row">
         <span>Sonraki Fon Getirisi:</span>
@@ -528,13 +528,14 @@
     const SVG_EYE_VISIBLE = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     const SVG_EYE_HIDDEN = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
+    // 26 Ağustos Güncel Net Bakiye (225.217,46 + 235,32 nema + 5.000 ekstra = 230.452,78 TL)
     const PRODUCTION_DATA = {
-      fundBalance: 225217.46,
-      activeEarningBalance: 225217.46,
-      monthlyRate: 3.04,
+      fundBalance: 230452.78,
+      activeEarningBalance: 230452.78,
+      monthlyRate: 3.14,
       userPin: "0000",
       initialDate: "2026-08-24",
-      lastProcessedDate: "2026-08-25",
+      lastProcessedDate: "2026-08-26",
       installments: [
         { id: 1, title: "Eylül Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Eylül 2026", paid: false },
         { id: 2, title: "Ekim Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Ekim 2026", paid: false },
@@ -549,7 +550,7 @@
       ]
     };
 
-    const DB_KEY = 'revolve_prod_v2';
+    const DB_KEY = 'revolve_prod_v3';
     let isAppUnlocked = false;
     let isBalanceVisible = false;
     let pendingCallback = null;
@@ -575,6 +576,7 @@
         db = firebase.database();
         revolveRef = db.ref(DB_KEY);
 
+        // Canlı veri dinleme (Yarış durumuna karşı korumalı)
         revolveRef.on('value', (snapshot) => {
           const val = snapshot.val();
           if (val) {
@@ -582,7 +584,8 @@
             try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
             render();
           } else {
-            saveState();
+            // Yalnızca bulutta kayıt yoksa ilk veriyi yaz
+            revolveRef.set(state).catch(e => console.warn(e));
           }
         });
       }
@@ -866,7 +869,7 @@
       const dailyEst = state.activeEarningBalance * dailyRate;
       document.getElementById('dailyProfitDisplay').innerText = `Günlük Getiri: ~${formatTRY(dailyEst)}`;
 
-      const formattedLastDate = state.lastProcessedDate ? state.lastProcessedDate.split('-').reverse().join('.') : "25.08.2026";
+      const formattedLastDate = state.lastProcessedDate ? state.lastProcessedDate.split('-').reverse().join('.') : "26.08.2026";
       document.getElementById('lastSyncDisplay').innerText = `${formattedLastDate} 08:00`;
       document.getElementById('nextSyncDisplay').innerText = getNextSyncDateString();
 
@@ -893,7 +896,6 @@
       }).join('');
     }
 
-    checkDaily0800Trigger();
     render();
   </script>
 </body>
