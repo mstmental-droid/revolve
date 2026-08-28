@@ -433,7 +433,7 @@
         <span class="rate-compact-label">Aylık:</span>
         <div class="rate-compact-input-group">
           <span>%</span>
-          <input type="number" step="0.01" id="rateInput" value="3.14">
+          <input type="number" step="0.01" id="rateInput" value="3.20">
           <button class="rate-compact-btn" onclick="guardedAction(updateRate)">Kaydet</button>
         </div>
       </div>
@@ -446,7 +446,7 @@
       </div>
       <div class="hero-info-row">
         <span>Son Fon Getirisi:</span>
-        <span style="font-weight: 800; color: #a7f3d0;" id="lastSyncDisplay">26.08.2026 08:00</span>
+        <span style="font-weight: 800; color: #a7f3d0;" id="lastSyncDisplay">28.08.2026 02:00</span>
       </div>
       <div class="hero-info-row">
         <span>Sonraki Fon Getirisi:</span>
@@ -489,7 +489,7 @@
 
   <div id="extraIncomeSection" class="card-box" style="display:none; margin-top: 12px;">
     <div class="section-label" style="margin: 0 0 4px 0;">Yeni Para Girişi (Gelir)</div>
-    <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px;">* 16:30 öncesi bu gece, sonrası yarın gece nemalanır.</div>
+    <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px;">* 16:30 öncesi bu gece (02:00), sonrası yarın gece nemalanır.</div>
     <div class="input-row">
       <input type="number" id="extraIncomeAmount" placeholder="Tutar Girin (₺)">
       <button class="btn-submit" onclick="guardedAction(submitExtraIncome)">Fona Aktar</button>
@@ -528,14 +528,14 @@
     const SVG_EYE_VISIBLE = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     const SVG_EYE_HIDDEN = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
-    // 26 Ağustos Güncel Net Bakiye (225.217,46 + 235,32 nema + 5.000 ekstra = 230.452,78 TL)
+    // 28 Ağustos 2026 Güncel Veriler
     const PRODUCTION_DATA = {
-      fundBalance: 230452.78,
-      activeEarningBalance: 230452.78,
-      monthlyRate: 3.14,
+      fundBalance: 235909.94,
+      activeEarningBalance: 235909.94,
+      monthlyRate: 3.20,
       userPin: "0000",
       initialDate: "2026-08-24",
-      lastProcessedDate: "2026-08-26",
+      lastProcessedDate: "2026-08-28",
       installments: [
         { id: 1, title: "Eylül Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Eylül 2026", paid: false },
         { id: 2, title: "Ekim Dönemi (Üni + Sabit Borçlar)", uniAmount: 55000, fixedAmount: 31582.67, date: "19 Ekim 2026", paid: false },
@@ -550,7 +550,7 @@
       ]
     };
 
-    const DB_KEY = 'revolve_prod_v3';
+    const DB_KEY = 'revolve_prod_v4';
     let isAppUnlocked = false;
     let isBalanceVisible = false;
     let pendingCallback = null;
@@ -576,7 +576,6 @@
         db = firebase.database();
         revolveRef = db.ref(DB_KEY);
 
-        // Canlı veri dinleme (Yarış durumuna karşı korumalı)
         revolveRef.on('value', (snapshot) => {
           const val = snapshot.val();
           if (val) {
@@ -584,7 +583,6 @@
             try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch(e){}
             render();
           } else {
-            // Yalnızca bulutta kayıt yoksa ilk veriyi yaz
             revolveRef.set(state).catch(e => console.warn(e));
           }
         });
@@ -599,18 +597,19 @@
       render();
     }
 
-    function checkDaily0800Trigger() {
+    // Gece 02:00 Tetikleyici Motoru
+    function checkDaily0200Trigger() {
       const now = new Date();
-      const dayOfWeek = now.getDay();
-      const isPast0800 = (now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() >= 0));
+      const dayOfWeek = now.getDay(); // 0: Pazar, 1: Pazartesi, ..., 6: Cumartesi
+      const isPast0200 = (now.getHours() >= 2);
 
-      if (dayOfWeek === 0 || dayOfWeek === 6) return;
+      if (dayOfWeek === 0 || dayOfWeek === 6) return; // Haftasonu getiri eklenmez
 
       const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-      if (isPast0800 && state.lastProcessedDate < todayStr) {
+      if (isPast0200 && state.lastProcessedDate < todayStr) {
         const dailyRate = Math.pow(1 + (state.monthlyRate / 100), 1 / 30) - 1;
-        const daysToApply = (dayOfWeek === 1) ? 3 : 1;
+        const daysToApply = (dayOfWeek === 1) ? 3 : 1; // Pazartesi 02:00'de 3 günlük cuma-ctesi-pazar getirisi
         
         let earnedTotal = 0;
         for (let i = 0; i < daysToApply; i++) {
@@ -625,30 +624,31 @@
       }
     }
 
-    setInterval(checkDaily0800Trigger, 10000);
+    setInterval(checkDaily0200Trigger, 10000);
 
+    // Sonraki Fon Getirisi Zamanını 02:00'ye Göre Hesaplama
     function getNextSyncDateString() {
       const now = new Date();
       const dayOfWeek = now.getDay();
-      const isPast0800 = (now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() >= 0));
+      const isPast0200 = (now.getHours() >= 2);
 
       let targetDate = new Date(now);
 
-      if (dayOfWeek === 5) {
-        if (isPast0800) targetDate.setDate(targetDate.getDate() + 3);
-      } else if (dayOfWeek === 6) {
-        targetDate.setDate(targetDate.getDate() + 2);
-      } else if (dayOfWeek === 0) {
-        targetDate.setDate(targetDate.getDate() + 1);
-      } else {
-        if (isPast0800) targetDate.setDate(targetDate.getDate() + 1);
+      if (dayOfWeek === 5) { // Cuma
+        if (isPast0200) targetDate.setDate(targetDate.getDate() + 3); // Pazartesi 02:00
+      } else if (dayOfWeek === 6) { // Cumartesi
+        targetDate.setDate(targetDate.getDate() + 2); // Pazartesi 02:00
+      } else if (dayOfWeek === 0) { // Pazar
+        targetDate.setDate(targetDate.getDate() + 1); // Pazartesi 02:00
+      } else { // Pazartesi - Perşembe
+        if (isPast0200) targetDate.setDate(targetDate.getDate() + 1);
       }
 
       const dd = String(targetDate.getDate()).padStart(2, '0');
       const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
       const yyyy = targetDate.getFullYear();
 
-      return `${dd}.${mm}.${yyyy} 08:00`;
+      return `${dd}.${mm}.${yyyy} 02:00`;
     }
 
     function toggleBalanceVisibility() {
@@ -869,8 +869,8 @@
       const dailyEst = state.activeEarningBalance * dailyRate;
       document.getElementById('dailyProfitDisplay').innerText = `Günlük Getiri: ~${formatTRY(dailyEst)}`;
 
-      const formattedLastDate = state.lastProcessedDate ? state.lastProcessedDate.split('-').reverse().join('.') : "26.08.2026";
-      document.getElementById('lastSyncDisplay').innerText = `${formattedLastDate} 08:00`;
+      const formattedLastDate = state.lastProcessedDate ? state.lastProcessedDate.split('-').reverse().join('.') : "28.08.2026";
+      document.getElementById('lastSyncDisplay').innerText = `${formattedLastDate} 02:00`;
       document.getElementById('nextSyncDisplay').innerText = getNextSyncDateString();
 
       const container = document.getElementById('scheduleList');
